@@ -33,10 +33,14 @@ public class GridCell extends Rectangle{
 		return occupied;
 	}
 	
-	public void occupy()
+	public void occupy(boolean ai)
 	{
 		occupied = true;
-		setFill(Color.LIGHTGREEN);
+		if(!ai)
+		{
+			setFill(Color.LIGHTGREEN);
+		}
+		
 	}
 	
 	public void hitCell()
