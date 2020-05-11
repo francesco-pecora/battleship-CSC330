@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import javafx.scene.paint.Color;
 
 public abstract class Ship {
 	
