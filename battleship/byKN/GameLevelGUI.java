@@ -17,14 +17,13 @@ public class GameLevelGUI {
 	private BorderPane window;	
 	
 	
-	Board playerBoard = new Board(true);
-	ComputerBoard aiBoard = new ComputerBoard(false, playerBoard);
+	PlayerBoard playerBoard = new PlayerBoard();
+	ComputerBoard aiBoard = new ComputerBoard(playerBoard);
 	HBox aiHbox = aiBoard.start();    	
 	HBox playerHbox2 = playerBoard.start();
 	
-	double offsetX, offsetY;
-	 
-	Cruiser ship1 = new Cruiser(); 
+	double offsetX, offsetY;	 
+	
 	ImageView base = new ImageView(new Image("file:src/assets/station.png"));
 	
 	public GameLevelGUI() {
@@ -43,8 +42,7 @@ public class GameLevelGUI {
 		AnchorPane GUISetup = new AnchorPane(finalBox);
 		
 		finalBox.setLayoutX(200);
-		finalBox.setLayoutY(20);
-		
+		finalBox.setLayoutY(20);	
 		
 		
 		

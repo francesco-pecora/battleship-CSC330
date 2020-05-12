@@ -13,7 +13,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
 
-public class Board{
+public abstract class Board{
 
  	private Label testCoordinates;
  	private Label statusMessage;
@@ -31,33 +31,32 @@ public class Board{
  	
  	private GridPane boardTest;
  	
- 	AircraftCarrier ac = new AircraftCarrier();
- 	Battleship btls = new Battleship();
- 	Cruiser cr = new Cruiser();
- 	Submarine sbm = new Submarine();
- 	Destroyer ds = new Destroyer();
+ 	private AircraftCarrier ac = new AircraftCarrier();
+ 	private Battleship btls = new Battleship();
+ 	private Cruiser cr = new Cruiser();
+ 	private Submarine sbm = new Submarine();
+ 	private Destroyer ds = new Destroyer();
  	
- 	ArrayList<Ship> listOfShips = new ArrayList<Ship>();
+ 	protected ArrayList<Ship> listOfShips = new ArrayList<Ship>();
  	
- 	Button placeAircraftCarrier = new Button("AircraftCarrier");
-	Button placeBattleship = new Button("Battleship");
-	Button placeCruiser = new Button("Cruiser");
-	Button placeSubmarine = new Button("Submarine");
-	Button placeDestroyer = new Button("Destroyer");
+ 	private Button placeAircraftCarrier = new Button("AircraftCarrier");
+ 	private Button placeBattleship = new Button("Battleship");
+ 	private Button placeCruiser = new Button("Cruiser");
+ 	private Button placeSubmarine = new Button("Submarine");
+ 	private Button placeDestroyer = new Button("Destroyer");
 	
 	//Colors
-	Color gridSrtokeColor = Color.DARKRED;
-	Color defaultCellColor = Color.rgb(240, 248, 255, 0.5); //alice blue transparent
-	Color defaultHoverColor = Color.DARKGREY;
-	Color inactiveCellColor = Color.rgb(0,0,0,0); //100% transparent
-	Color incorrectPlacementColor = Color.PALEVIOLETRED;
-	Color overlapColor = Color.RED;
-	Color placedShipColor = Color.LIGHTGREEN;
-	Color missColor = Color.BLUE;
+ 	private Color gridSrtokeColor = Color.DARKRED;
+ 	private Color defaultCellColor = Color.rgb(240, 248, 255, 0.5); //alice blue transparent
+ 	private Color defaultHoverColor = Color.DARKGREY;
+ 	private Color inactiveCellColor = Color.rgb(0,0,0,0); //100% transparent
+ 	protected Color incorrectPlacementColor = Color.PALEVIOLETRED;
+ 	protected Color overlapColor = Color.RED; 	
+ 	protected Color missColor = Color.BLUE;
 	
-	Button playGame = new Button("PLAY!");
-	VBox placeShipsMenu;
- 	StackPane finalMessage;
+ 	private Button playGame = new Button("PLAY!");
+ 	private VBox placeShipsMenu;
+ 	private StackPane finalMessage;
  	
  	
 	public Board(boolean playerBoard)
@@ -107,7 +106,7 @@ public class Board{
     	            else
     	            {   	            	   	            	
     	            	onHoverChangeColor(cell, defaultCellColor, defaultHoverColor, testCoordinates, boardTest);
-    	            	onClickPlaceShip(cell, statusMessage, boardTest);
+    	            	onClickChooseGrid(cell, statusMessage, boardTest);
     	            	cell.setFill(defaultCellColor);
     	    	        cell.setStroke(gridSrtokeColor);
     	            }   	         
@@ -117,7 +116,7 @@ public class Board{
     		
     	}
     	
-    	HBox testHbox;
+    	HBox boardHbox;
     	
     	if(belongsToPlayer)
     	{
@@ -140,19 +139,19 @@ public class Board{
         			placeAircraftCarrier, placeBattleship, placeCruiser, placeSubmarine, placeDestroyer, 
         			playGame);
     		VBox vbox1 = new VBox(20, finalMessage, testCoordinates, placeShipsMenu, statusMessage, roundMessage);
-    		testHbox = new HBox(20, boardTest, vbox1);  
+    		boardHbox = new HBox(20, boardTest, vbox1);  
     	}
     	else
     	{
     		VBox vbox1 = new VBox(20, testCoordinates);
-    		testHbox = new HBox(20, boardTest, vbox1);  
+    		boardHbox = new HBox(20, boardTest, vbox1);  
     		placeShipsAI();
     	}
     	
     	
     	
     	 	
-    	return testHbox;	
+    	return boardHbox;	
     }
     
     
@@ -161,359 +160,16 @@ public class Board{
     
     //change color on mouse hover
     //used for planning the chip placement
-    private void onHoverChangeColor(GridCell gc, Color defaultColor, Color hoverColor, 
-    		Label textLabel, GridPane gp) {
-    	
-    	gc.setOnMouseEntered( e -> {
-    		gc.setFill(hoverColor);
-    		
-    		if(!readyToPlay)
-    		{
-    			boolean occupied = false;
-        		
-        		if(horizontally) //horizontal placement
-        		{
-        			
-        			if(gc.getXCoordinate() + currentShipSize - 1 >= MAX_GRID_SIZE) //if out of bounds
-            		{
-            			for(int i = 0; i < (MAX_GRID_SIZE - gc.getXCoordinate()); i++)
-            			{
-            				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate()+i, gc.getYCoordinate());
-            				currentGC.setFill(incorrectPlacementColor);
-            			}
-            		}
-            		else //in bounds
-            		{
-            			//check if other ship is in the way
-            			for(int i = 0; i < currentShipSize; i++)
-            			{
-            				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate()+i, gc.getYCoordinate());
-            				if(currentGC.isOccupied())
-            				{
-            					occupied = true;
-            					i = currentShipSize;
-            				}
-            					
-            			}
-            			
-            			if (occupied) //highlight pink and red if another ship is in the way
-            			{
-            				for(int i = 0; i < currentShipSize; i++)
-                			{
-                				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate()+i, gc.getYCoordinate());
-                				if(currentGC.isOccupied())//overlap
-                				{
-                					currentGC.setFill(overlapColor);
-                				}
-                				else
-                				{
-                					currentGC.setFill(incorrectPlacementColor);
-                				}
-                				
-                			}
-            			}
-            			else //highlight as available spot
-            			{
-            				for(int i = 0; i < currentShipSize; i++)
-                    		{
-                				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate()+i, gc.getYCoordinate());
-                				currentGC.setFill(hoverColor);
-                    		}
-            			}
-            			
-            			
-            		}
-        		}
-        		else //vertical placement
-        		{
-        			if(gc.getYCoordinate() + currentShipSize - 1 >= MAX_GRID_SIZE) //if out of bounds
-            		{
-            			for(int i = 0; i < (MAX_GRID_SIZE - gc.getYCoordinate()); i++)
-            			{
-            				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate(), gc.getYCoordinate() + i);
-            				currentGC.setFill(incorrectPlacementColor);
-            			}
-            		}
-            		else //in bounds
-            		{
-            			//check if other ship is in the way
-            			for(int i = 0; i < currentShipSize; i++)
-            			{
-            				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate(), gc.getYCoordinate() + i);
-            				if(currentGC.isOccupied())
-            				{
-            					occupied = true;
-            					i = currentShipSize;
-            				}
-            					
-            			}
-            			
-            			if (occupied) //highlight pink and red if another ship is in the way
-            			{
-            				for(int i = 0; i < currentShipSize; i++)
-                			{
-                				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate(), gc.getYCoordinate() + i);
-                				if(currentGC.isOccupied()) //overlap
-                				{
-                					currentGC.setFill(overlapColor);
-                				}
-                				else
-                				{
-                					currentGC.setFill(incorrectPlacementColor);
-                				}
-                				
-                			}
-            			}
-            			else //highlight as available spot
-            			{
-            				for(int i = 0; i < currentShipSize; i++)
-                    		{
-                				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate(), gc.getYCoordinate() + i);
-                				currentGC.setFill(hoverColor);
-                    		}
-            			}
-            			
-            		}
-        		}
-    		}
-    		else
-    		{
-    			if(gc.isHit() || gc.isMiss())
-    			{
-    				gc.setFill(incorrectPlacementColor);
-    			}
-    			else
-    			{
-    				gc.setFill(hoverColor);
-    			}    			
-    		}
-    		
-    		textLabel.setText(gc.getXCoordinate() + ":" + gc.getYCoordinate());    		
-    	});           
-    	
-        gc.setOnMouseExited(e -> {
-        	//gc.setFill(defaultColor);
-        	
-        	if(!readyToPlay)
-        	{
-        		if(horizontally)
-            	{
-            		if(gc.getXCoordinate() + currentShipSize - 1 >= MAX_GRID_SIZE)
-            		{
-                		for(int i = 0; i < (MAX_GRID_SIZE - gc.getXCoordinate()); i++)
-            			{
-                			GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate()+i, gc.getYCoordinate());
-                			if(!currentGC.isOccupied())
-                			{
-                				currentGC.setFill(defaultColor);
-                			}
-                			else
-                			{
-                				currentGC.setFill(placedShipColor);
-                			}
-            			}
-            		}
-            		else
-            		{
-            			
-            			for(int i = 0; i < currentShipSize; i++)
-                		{
-            				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate()+i, gc.getYCoordinate());
-                			if(!currentGC.isOccupied())
-                			{
-                				currentGC.setFill(defaultColor);
-                			}
-                			else
-                			{
-                				currentGC.setFill(placedShipColor);
-                			}
-                		}
-            		}
-            	}
-            	else
-            	{
-            		if(gc.getYCoordinate() + currentShipSize - 1 >= MAX_GRID_SIZE)
-            		{
-                		for(int i = 0; i < (MAX_GRID_SIZE - gc.getYCoordinate()); i++)
-            			{
-                			GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate(), gc.getYCoordinate() + i);
-            				if(!currentGC.isOccupied())
-                			{
-                				currentGC.setFill(defaultColor);
-                			}
-                			else
-                			{
-                				currentGC.setFill(placedShipColor);
-                			}
-            			}
-            		}
-            		else
-            		{
-            			for(int i = 0; i < currentShipSize; i++)
-                		{
-            				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate(), gc.getYCoordinate() + i);
-                			if(!currentGC.isOccupied())
-                			{
-                				currentGC.setFill(defaultColor);
-                			}
-                			else
-                			{
-                				currentGC.setFill(placedShipColor);
-                			}
-                		}
-            		}
-            	}
-        	}
-        	else
-        	{
-        		if(gc.isHit())
-    			{
-        			if(gc.isSunk())
-        			{
-        				gc.setFill(overlapColor);
-        			}
-        			else
-        			{
-        				gc.setFill(incorrectPlacementColor);
-        			}
-    				
-    			}
-        		else if (gc.isOccupied())
-        		{
-        			if(belongsToPlayer)
-        			{
-        				gc.setFill(placedShipColor);
-        			}
-        			else
-        			{
-        				gc.setFill(defaultColor);
-        			}        			
-        		}
-        		else if(gc.isMiss())
-        		{
-        			gc.setFill(missColor);
-        		}
-    			else
-    			{
-    				gc.setFill(defaultColor);
-    			} 
-        	}   	
-        	
-        	
-        	textLabel.setText("x:x");
-        	
-        });
-    }
+    public abstract void onHoverChangeColor(GridCell gc, Color defaultColor, Color hoverColor, 
+    		Label textLabel, GridPane gp);
     
         
     //place ship on click 
-    public void onClickPlaceShip(GridCell gc, 
-    		Label textLabel, GridPane gp) {
-    		gc.setOnMouseClicked(e1 -> {
-    			
-    			if(!readyToPlay)
-    			{
-    				if(!currentShipIsPlaced())
-        			{
-        				boolean occupied = false;
-        				
-        				if(horizontally)
-                		{
-                			if(gc.getXCoordinate() + currentShipSize - 1 >= MAX_GRID_SIZE)
-                    		{
-                				textLabel.setText(currentShipName + " can't be placed here!");
-                    		}
-                    		else
-                    		{
-                    			//check if other ship is in the way
-                    			for(int i = 0; i < currentShipSize; i++)
-                    			{
-                    				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate()+i, gc.getYCoordinate());
-                    				if(currentGC.isOccupied())
-                    				{
-                    					occupied = true;
-                    					i = currentShipSize;
-                    				}
-                    					
-                    			}
-                    			
-                    			if(occupied)
-                    			{
-                    				textLabel.setText(currentShipName + " can't be placed here!");
-                    			}
-                    			else
-                    			{
-                    				ArrayList<GridCell> currentShipCells = new ArrayList<GridCell>();
-                    				for(int i = 0; i < currentShipSize; i++)
-                            		{
-                            			GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate()+i, 
-                            					gc.getYCoordinate());
-                            			
-                            			currentGC.occupy(false);
-                            			currentShipCells.add(currentGC);
-                            		}
-                        			
-                        			placeCurrentShip(currentShipCells);
-                        			textLabel.setText(currentShipName + " was placed");
-                    			}
-                    			
-                    		
-                    			
-                    		}
-                		}
-                		else
-                		{
-                			if(gc.getYCoordinate() + currentShipSize - 1 >= MAX_GRID_SIZE)
-                    		{
-                				textLabel.setText(currentShipName + " can't be placed here!");
-                    		}
-                    		else
-                    		{
-                    			//check if other ship is in the way
-                    			for(int i = 0; i < currentShipSize; i++)
-                    			{
-                    				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate(), gc.getYCoordinate() + i);
-                    				if(currentGC.isOccupied())
-                    				{
-                    					occupied = true;
-                    					i = currentShipSize;
-                    				}
-                    					
-                    			}
-                    			
-                    			if(occupied)
-                    			{
-                    				textLabel.setText(currentShipName + " can't be placed here!");
-                    			}
-                    			else
-                    			{
-                    				ArrayList<GridCell> currentShipCells = new ArrayList<GridCell>();
-                    				for(int i = 0; i < currentShipSize; i++)
-                            		{
-                        				GridCell currentGC = (GridCell)getNodeFromGridPane(gp, gc.getXCoordinate(), gc.getYCoordinate() + i);
-                        				currentGC.occupy(false);
-                        				currentShipCells.add(currentGC);
-                            		}
-                        			
-                        			placeCurrentShip(currentShipCells);
-                        			textLabel.setText(currentShipName + " was placed");
-                    			}
-                    			
-                    		}
-                		}
-        			}
-        			else
-        			{
-        				textLabel.setText(currentShipName + " was already placed!");
-        			}
-    			}
-    			else
-    			{
-    				textLabel.setText("You can't shoot you own board!");    				
-    			}    			   			    			    	
-    			
-    	});
-    }    
+    public abstract void onClickChooseGrid(GridCell gc, 
+    		Label textLabel, GridPane gp);
+    
+    
+    
     
     //horizontal placement button handler
     class HorizontalPlacementHandler implements EventHandler<ActionEvent>
@@ -737,9 +393,19 @@ public class Board{
     	return statusMessage;
     }
     
+    public boolean isPlayer()
+    {
+    	return belongsToPlayer;
+    }
+    
     public GridPane getGridBoard()
     {
     	return boardTest;
+    }
+    
+    public int getGridSize()
+    {
+    	return MAX_GRID_SIZE;
     }
     
     public boolean getHit(int x, int y)
@@ -768,121 +434,57 @@ public class Board{
     		}
     	}
     	return true;
-    }
+    }    
     
-    private void placeShipsAI()
+    
+    public void flipOrientation()
     {
-    	int x;
-    	int y;
-    	while(!allShipsArePlaced())
-    	{
-    		  
-    		for(Ship ship : listOfShips)
-    		{
-    			currentShipName = ship.getName();
-    			currentShipSize = ship.getSize();
-    			while(!ship.isPlaced())
-    			{
-    				randomOrientation();
-    				x = randomCoordinate();
-    				y = randomCoordinate();
-    				
-    				boolean occupied = false;
-    				
-    				if(horizontally)
-            		{
-            			if(x + ship.getSize() - 1 < MAX_GRID_SIZE)
-                		{
-            				//check if other ship is in the way
-                			for(int i = 0; i < ship.getSize(); i++)
-                			{
-                				GridCell currentGC = (GridCell)getNodeFromGridPane(boardTest, x+i, y);
-                				if(currentGC.isOccupied())
-                				{
-                					occupied = true;
-                					i = ship.getSize();
-                				}
-                					
-                			}
-                			
-                			if(!occupied)
-                			{
-                				
-                				ArrayList<GridCell> currentShipCells = new ArrayList<GridCell>();
-                				for(int i = 0; i < ship.getSize(); i++)
-                        		{
-                        			GridCell currentGC = (GridCell)getNodeFromGridPane(boardTest, x+i, y);
-                        			
-                        			currentGC.occupy(true);
-                        			currentShipCells.add(currentGC);
-                        		}
-                    			
-                    			placeCurrentShip(currentShipCells);                    			
-                			}               		
-                			
-                		}
-            		}
-            		else
-            		{
-            			if(y + ship.getSize() - 1 < MAX_GRID_SIZE)
-                		{
-            				
-                			//check if other ship is in the way
-                			for(int i = 0; i < ship.getSize(); i++)
-                			{
-                				GridCell currentGC = (GridCell)getNodeFromGridPane(boardTest, x, y + i);
-                				if(currentGC.isOccupied())
-                				{
-                					occupied = true;
-                					i = ship.getSize();
-                				}
-                					
-                			}
-                			
-                			if(!occupied)
-                			{
-                				
-                				ArrayList<GridCell> currentShipCells = new ArrayList<GridCell>();
-                				for(int i = 0; i < ship.getSize(); i++)
-                        		{
-                    				GridCell currentGC = (GridCell)getNodeFromGridPane(boardTest, x, y+i);
-                    				currentGC.occupy(true);
-                    				currentShipCells.add(currentGC);
-                        		}
-                    			
-                    			placeCurrentShip(currentShipCells);                    			
-                			}
-                			
-                		}
-            		}
-    			}
-    				
-    			}
-    		}
-        	
-    		readyToPlay = true;
-    	}
-    	
-    
-    
-    private void randomOrientation()
-    {
-    	int orientation = (int)(Math.random() * 2) + 1;
-    	if(orientation == 1)
-    	{
-    		horizontally = true;
-    	}
-    	else if(orientation == 2)
+    	if(horizontally)
     	{
     		horizontally = false;
     	}
+    	else
+    	{
+    		horizontally = true;
+    	}  
     }
     
-    public int randomCoordinate()
+    public boolean isHorizontally()
     {
-    	int c = (int)(Math.random() * 10) + 1;
-    	return c;
+    	return horizontally;
     }
+    
+    public void readyToPlay()
+    {
+    	readyToPlay = true;
+    }
+    
+    public void placeShipsAI()
+    {
+    	//do nothing
+    }
+    
+    public void setCurrentShipName(String n)
+    {
+    	currentShipName = n;
+		
+    }
+    
+    public void setCurrentShipSize(int s)
+    {
+    	currentShipSize = s;
+    }
+    
+    public int getCurrentShipSize()
+    {
+    	return currentShipSize;
+    }
+    
+    public String getCurrentShipName()
+    {
+    	return currentShipName;
+    }
+    
     
     
 }
