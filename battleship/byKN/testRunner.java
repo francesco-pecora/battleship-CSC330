@@ -14,9 +14,7 @@ public class testRunner extends Application {
     @Override
     public void start(Stage primaryStage) {
     	
-    	GameLevelGUI glGUI = new GameLevelGUI();
-    	
-    	
+    	GameLevelGUI glGUI = new GameLevelGUI();    	
     	
     	
     	Scene scene = new Scene(glGUI.getRoot());
