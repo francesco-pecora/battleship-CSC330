@@ -10,17 +10,16 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.Pane;
-import boards.*;
-
+import players.*;
 
 public class GameLevelGUI {
 	private BorderPane window;	
 	
+	HumanPlayer human = new HumanPlayer();
+	ComputerPlayer computer = new ComputerPlayer(human);
 	
-	PlayerBoard playerBoard = new PlayerBoard();
-	ComputerBoard aiBoard = new ComputerBoard(playerBoard);
-	HBox aiHbox = aiBoard.getBoardGUI();    	
-	HBox playerHbox2 = playerBoard.getBoardGUI();	
+	HBox aiHbox = computer.getComputerBoard().getBoardGUI();    	
+	HBox playerHbox2 = human.getPlayerBoard().getBoardGUI();	
 	
 	
 	double offsetX, offsetY;	 

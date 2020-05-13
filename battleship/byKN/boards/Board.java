@@ -406,6 +406,15 @@ public abstract class Board{
     	return roundMessage;
     }
     
+    /**
+     * Get a current round number
+     * 
+     * @return roundCounter : int that represents the current round number
+     */
+    public int getRoundCounter()
+    {
+    	return roundCounter;
+    }
     
     /**
      * Get the list of ships 
@@ -436,6 +445,8 @@ public abstract class Board{
     {
     	turnEnded = false;
     }
+    
+    
     
     
     /**
