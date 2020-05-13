@@ -21,8 +21,20 @@ public class ComputerBoard extends Board{
 	
 	//Data fields
 	PlayerBoard enemy;
-	boolean hardLevel = false;
+	boolean hardLevel = true;
  	
+	//Coordinates of the attack
+		private int xHit = -1;
+		private int yHit = -1;
+		
+		//Variables for smart AI to control the hit to the nearby cells
+		private boolean up = false;
+		private boolean right = false;
+		private boolean down = false;
+		private boolean left = false;
+		private boolean neighborsChecked = true;
+		
+		private GridCell currentGC;
 	
 	//***************************************CONSTRUCTORS********************************************
 	
@@ -59,7 +71,140 @@ public class ComputerBoard extends Board{
 			y = randomCoordinate();
 		}
 		
+		//save for smart AI
+		if(hardLevel)
+		{
+			GridCell gc = (GridCell)getNodeFromGridPane(enemy.getGridBoard(), x, y);
+			if(gc.isHit())
+			{
+				xHit = x;
+				yHit = y;
+			}			
+			
+		}
+		
 		enemy.endTurn(); //end turn (check if any ships sunk, if game ended)
+	}
+	
+	
+public void smartAttackEnemy() {
+		
+		// the x and y value have not been set before
+		System.out.println(xHit + " " + yHit);
+		if(xHit == -1 && yHit == -1) {
+			attackEnemy();
+			return;
+		}
+		
+		currentGC = (GridCell)getNodeFromGridPane(enemy.getGridBoard(), xHit, yHit);
+		
+		// if first guess is a spot occupied by a ship, we check neighbors
+		if(currentGC.isHit()) neighborsChecked = false;
+		
+		if(!neighborsChecked) {
+			
+			// handles out of bounds coordinates
+			if(xHit == 1) left = true;
+			if(yHit == 1) up = true;
+			if(xHit == 10) right = true;
+			if(yHit == 10) down = true;
+			
+			
+			// checking if cell above was visited
+			if(!up) {
+				currentGC = (GridCell)getNodeFromGridPane(enemy.getGridBoard(), xHit, yHit - 1);
+				if(currentGC.isHit() || currentGC.isMiss() || currentGC.isSunk()) {
+					up = true;	// skip the neighbor above 
+				}
+			}
+			
+			
+			// checking if cell to the right was visited
+			if(!right) {
+				currentGC = (GridCell)getNodeFromGridPane(enemy.getGridBoard(), xHit + 1, yHit);
+				if(currentGC.isHit() || currentGC.isMiss() || currentGC.isSunk()) {
+					right = true;	// skip the neighbor to the right
+				}
+			}
+			
+			
+			// checking if cell below was visited
+			if(!down) {
+				currentGC = (GridCell)getNodeFromGridPane(enemy.getGridBoard(), xHit, yHit + 1);
+				if(currentGC.isHit() || currentGC.isMiss() || currentGC.isSunk()) {
+					down = true;	// skip the neighbor below
+				}
+			}
+			
+			
+			// checking if cell to the left was visited
+			if(!left) {
+				currentGC = (GridCell)getNodeFromGridPane(enemy.getGridBoard(), xHit - 1, yHit);
+				if(currentGC.isHit() || currentGC.isMiss() || currentGC.isSunk()) {
+					left = true;	// skip the neighbor to the left
+				}
+			}
+
+			
+			if(!up) {
+				up = true;
+				enemy.getHit(xHit, yHit - 1);
+				currentGC = (GridCell)getNodeFromGridPane(enemy.getGridBoard(), xHit, yHit - 1);
+				if(currentGC.isHit() || currentGC.isSunk()) {
+					yHit--;
+				}
+			}
+			else if (!right) {
+				right = true;
+				enemy.getHit(xHit + 1, yHit);
+				currentGC = (GridCell)getNodeFromGridPane(enemy.getGridBoard(), xHit + 1, yHit);
+				if(currentGC.isHit() || currentGC.isSunk()) {
+					xHit++;
+				}
+			}
+			else if (!down) {
+				down = true;
+				enemy.getHit(xHit, yHit + 1);
+				currentGC = (GridCell)getNodeFromGridPane(enemy.getGridBoard(), xHit, yHit + 1);
+				if(currentGC.isHit() || currentGC.isSunk()) {
+					yHit++;
+				}
+			}
+			else if (!left) {
+				left = true;
+				enemy.getHit(xHit - 1, yHit);
+				currentGC = (GridCell)getNodeFromGridPane(enemy.getGridBoard(), xHit - 1, yHit);
+				if(currentGC.isHit() || currentGC.isSunk()) {
+					xHit--;
+				}
+			}
+			else {
+				up = false;
+				right = false;
+				down = false;
+				left = false;
+				neighborsChecked = true;
+				attackEnemy();
+				return;			// avoid calling endTurn two times
+			}
+
+			up = false;
+			right = false;
+			down = false;
+			left = false;
+			
+		}
+		// if we haven't met a hit, we keep checking randomly
+		else {
+			attackEnemy();
+			currentGC = (GridCell)getNodeFromGridPane(enemy.getGridBoard(), xHit, yHit);
+			if(currentGC.isHit()) {
+				neighborsChecked = false;
+			}
+			return;
+		}
+		
+		enemy.endTurn();
 	}
 	
 	
@@ -315,6 +460,7 @@ public class ComputerBoard extends Board{
   						{
   							//TODO
       						//call smart AI
+  							smartAttackEnemy();
   						}
       					
   					}    					
@@ -335,6 +481,7 @@ public class ComputerBoard extends Board{
   					{
   						//TODO
   						//call smart AI
+  						smartAttackEnemy();
   					}
   				} 
   				
